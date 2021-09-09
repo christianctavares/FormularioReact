@@ -3,20 +3,47 @@ import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import Switch from "@material-ui/core/Switch";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
+import { useContext } from "react";
+import ValidacoesCadastro from "../../contexts/ValidadoesCadastro";
+import useErros from "../../hooks/useErros";
+// import { validarSenha } from "../../models/cadastro";
 
-function DadosPessoais({ aoEnviar, validarCPF, formatar }) {
+function DadosPessoais({ aoEnviar }) {
   const [nome, setNome] = useState("");
   const [sobrenome, setSobrenome] = useState("");
   const [cpf, setCpf] = useState("");
   const [promocoes, setPromocoes] = useState(true);
   const [novidades, setNovidades] = useState(true);
-  const [erros, setErros] = useState({ cpf: { valido: true, texto: "" } });
-  const [cpfFormatado, setCpfFormatado] = useState(cpf);
+  const validacoes = useContext(ValidacoesCadastro);
+  const [erros, validarCampos, possoEnviar] = useErros(validacoes);
+  // const [erros, setErros] = useState({
+  //   cpf: { valido: true, texto: "" },
+  //   nome: { valido: true, texto: "" },
+  // });
+  // function validarCampos(event) {
+  //   const { name, value } = event.target;
+  //   const ehValido = validacoes[name](value);
+  //   const novoEstado = { ...erros };
+  //   novoEstado[name] = ehValido;
+  //   setErros(novoEstado);
+  // }
+
+  // function possoEnviar() {
+  //   for (let campo in erros) {
+  //     if (!erros[campo].valido) {
+  //       return false;
+  //     }
+  //     return true;
+  //   }
+  // }
+
   return (
     <form
       onSubmit={(event) => {
         event.preventDefault();
-        aoEnviar({ nome, sobrenome, cpf, promocoes, novidades });
+        if (possoEnviar()) {
+          aoEnviar({ nome, sobrenome, cpf, promocoes, novidades });
+        }
       }}
     >
       <TextField
@@ -24,8 +51,12 @@ function DadosPessoais({ aoEnviar, validarCPF, formatar }) {
         onChange={(event) => {
           setNome(event.target.value);
         }}
+        onBlur={validarCampos}
+        error={!erros.nome.valido}
+        helperText={erros.nome.texto}
         id="nome"
         label="nome"
+        name="nome"
         variant="outlined"
         margin="normal"
         fullWidth
@@ -48,26 +79,27 @@ function DadosPessoais({ aoEnviar, validarCPF, formatar }) {
       </TextField>
 
       <TextField
-        value={cpfFormatado}
+        value={cpf}
         onChange={(event) => {
           setCpf(event.target.value);
-          setCpfFormatado(event.target.value);
         }}
-        onBlur={(event) => {
-          const ehValido = validarCPF(cpf);
-          let cpfFormatado = (event.target.value = formatar(cpf));
-          if (ehValido.valido === true) {
-            setCpfFormatado(cpfFormatado);
-          } else {
-            setCpfFormatado("");
-          }
-          setErros({
-            cpf: ehValido,
-          });
-        }}
+        onBlur={validarCampos}
+        // (event) => {
+        //   const ehValido = validarCPF(cpf);
+        //   let cpfFormatado = (event.target.value = formatar(cpf));
+        //   if (ehValido.valido === true) {
+        //     setCpfFormatado(cpfFormatado);
+        //   } else {
+        //     setCpfFormatado("");
+        //   }
+        //   setErros({
+        //     cpf: ehValido,
+        //   });
+        // }
         error={!erros.cpf.valido}
         helperText={erros.cpf.texto}
         id="cpf"
+        name="cpf"
         label="cpf"
         variant="outlined"
         margin="normal"
@@ -103,7 +135,7 @@ function DadosPessoais({ aoEnviar, validarCPF, formatar }) {
       />
 
       <Button variant="contained" color="primary" type="submit">
-        Cadastrar
+        Proximo
       </Button>
     </form>
   );
